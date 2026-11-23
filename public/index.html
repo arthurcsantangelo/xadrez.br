@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xadrez Real | Batalha de Reis</title>
+
+  <!-- Google Fonts: Montserrat, Inter e JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Chessboard.js CSS via CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+
+  <!-- Estilos Customizados -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="castle-theme">
+
+  <!-- ==========================================================================
+       TELA 1: INTERFACE PRINCIPAL DO CASTELO (MENU OFICIAL DA FOTO)
+       ========================================================================== -->
+  <section id="castleMenuScreen" class="castle-menu-view active">
+    <div class="castle-viewport">
+      <div class="castle-canvas">
+        <img src="img/menu-bg.jpg" class="castle-bg-img" alt="Xadrez Real Menu">
+
+        <!-- IDs mantidos no DOM para o JS não quebrar (invisíveis) -->
+        <span id="castleProfileName" style="display:none">Jogador123</span>
+
+        <div class="castle-resource-layer" role="group" aria-label="Recursos do jogador">
+          <img src="img/resource-bar.png" class="castle-resource-art" alt="">
+          <span id="castleCoinCounter" class="castle-resource-count castle-coin-count" role="status" aria-label="Moedas de ouro" aria-live="polite">10</span>
+          <span id="castleGemCounter" class="castle-resource-count castle-ruby-count" role="status" aria-label="Rubis" aria-live="polite">0</span>
+          <button id="btnMenuFriends" class="castle-friends-button" type="button" title="Amigos" aria-label="Abrir tela de amizades"></button>
+        </div>
+
+        <!-- Botões ocultos (referenciados pelo JS, sem visual) -->
+        <button id="btnMenuProfile"   style="display:none"></button>
+        <button id="btnMenuGameModes" style="display:none"></button>
+        <button id="btnMenuInventory" style="display:none"></button>
+        <button id="btnMenuSettings"  style="display:none"></button>
+        <button id="btnMenuBattlePass"style="display:none"></button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       TELA 2: ARENA DO TABULEIRO DE XADREZ (A PARTIDA EM SI)
+       ========================================================================== -->
+  <section id="gameArenaScreen" class="game-arena-view">
+    
+    <!-- Barra Superior da Arena -->
+    <header class="arena-topbar">
+      <button id="btnBackToMenu" class="cc-btn-secondary btn-sm" title="Voltar ao Menu Principal">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        <span>Voltar ao Menu</span>
+      </button>
+
+      <div class="arena-status-pill">
+        <span class="pill-dot online"></span>
+        <span id="arenaModeLabel">Partida vs Bot</span>
+      </div>
+
+      <div class="arena-top-actions">
+        <button id="btnQuickBattlePass" class="arena-icon-btn" title="Passe de Batalha">
+          🏆 <span id="quickBpLevel">Nvl 1</span>
+        </button>
+        <button id="btnQuickCustomize" class="arena-icon-btn" title="Skins">
+          🎨
+        </button>
+        <button id="soundToggleBtn" class="arena-icon-btn" title="Som">
+          <span id="soundIcon">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Layout da Mesa de Jogo -->
+    <div class="arena-game-container">
+      
+      <!-- Seção do Tabuleiro + Eval Bar -->
+      <div class="cc-board-section">
+        <!-- Eval Bar -->
+        <div class="cc-eval-bar-wrapper">
+          <div class="cc-eval-bar">
+            <div class="cc-eval-black"></div>
+            <div class="cc-eval-white" id="evalBarWhite" style="height: 50%;"></div>
+            <span class="cc-eval-score" id="evalScoreText">0.0</span>
+          </div>
+        </div>
+
+        <div class="cc-board-column">
+          <!-- Card Oponente -->
+          <div class="cc-player-card cc-opponent" id="opponentCard">
+            <div class="cc-player-info">
+              <div class="cc-avatar-box">
+                <img src="https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png" class="cc-avatar-img" id="opponentAvatarImg" alt="Oponente">
+              </div>
+              <div class="cc-player-meta">
+                <div class="cc-name-row">
+                  <span class="cc-flag">🇧🇷</span>
+                  <span class="cc-player-name" id="opponentName">Nelson (Bot)</span>
+                  <span class="cc-rating-badge" id="opponentRating">1300</span>
+                </div>
+                <div class="cc-captured-pieces" id="opponentCapturedPieces"></div>
+              </div>
+            </div>
+            <div class="cc-clock" id="opponentClock">
+              <span class="cc-clock-time" id="opponentClockText">10:00</span>
+            </div>
+          </div>
+
+          <!-- Tabuleiro Chessboard.js -->
+          <div class="cc-board-container">
+            <div id="board" class="cc-chessboard"></div>
+          </div>
+
+          <!-- Card do Jogador -->
+          <div class="cc-player-card cc-user" id="myCard">
+            <div class="cc-player-info">
+              <div class="cc-avatar-box">
+                <img src="https://images.chesscomfiles.com/uploads/v1/user/41.1a1df277.50x50o.bb7d32c0d510.png" class="cc-avatar-img" id="myAvatarImg" alt="Você">
+              </div>
+              <div class="cc-player-meta">
+                <div class="cc-name-row">
+                  <span class="cc-flag">🇧🇷</span>
+                  <span class="cc-player-name" id="myName">Jogador123</span>
+                  <span class="cc-rating-badge" id="myRating">1200</span>
+                </div>
+                <div class="cc-captured-pieces" id="myCapturedPieces"></div>
+              </div>
+            </div>
+            <div class="cc-clock active" id="myClock">
+              <span class="cc-clock-time" id="myClockText">10:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel Lateral da Partida -->
+      <aside class="arena-sidebar">
+        <div class="cc-sidebar-tabs">
+          <button class="cc-tab-btn active" data-panel="movesTabPanel">Lances (<span id="moveCount">0</span>)</button>
+          <button class="cc-tab-btn" data-panel="chatTabPanel">Chat</button>
+        </div>
+
+        <div class="cc-panel-content active" id="movesTabPanel">
+          <div class="cc-moves-list-header">
+            <span class="cc-m-num">#</span>
+            <span class="cc-m-white">Brancas</span>
+            <span class="cc-m-black">Pretas</span>
+          </div>
+          <div class="cc-moves-list-body" id="movesTableBody">
+            <div class="cc-empty-moves">Partida em andamento. Faça seu lance!</div>
+          </div>
+        </div>
+
+        <div class="cc-panel-content" id="chatTabPanel">
+          <div class="cc-chat-messages" id="chatMessages">
+            <div class="cc-chat-sys">Chat ativo na partida. Boa sorte!</div>
+          </div>
+          <form class="cc-chat-form" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Mensagem..." maxlength="180" autocomplete="off">
+            <button type="submit" class="cc-chat-send">➤</button>
+          </form>
+        </div>
+
+        <!-- Banner de Alerta -->
+        <div class="cc-status-alert-box hidden" id="gameAlertBox">
+          <span id="gameAlertText">Xeque!</span>
+        </div>
+
+        <!-- Botões de Ação na Partida -->
+        <div class="arena-controls">
+          <button class="cc-btn-secondary" id="btnResign">🏳️ Desistir</button>
+          <button class="cc-btn-play-green" id="btnRematch">🔄 Nova Partida</button>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       MODAL 1: MODOS DE JOGO (ESCOLHER BOT OU MULTIPLAYER)
+       ========================================================================== -->
+  <div id="gameModesModal" class="modal-backdrop hidden">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">🏆 Modos de Jogo</h3>
+        <button class="modal-close" id="gameModesCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Toggle: Bot vs Multiplayer -->
+        <div class="cc-mode-toggle">
+          <button class="cc-mode-btn active" id="btnSelectBotMode">Contra Inteligência Artificial</button>
+          <button class="cc-mode-btn" id="btnSelectOnlineMode">Multiplayer Online com Amigo</button>
+        </div>
+
+        <!-- Seção Bot -->
+        <div id="modeSectionBot">
+          <h4 class="custom-desc">Selecione o seu adversário:</h4>
+          <div class="cc-bots-grid">
+            <div class="cc-bot-card" data-bot-id="martin" data-diff="easy" data-rating="250" data-name="Martin" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/111867.24a485bc.50x50o.28822501a3cf.png">
+              <img src="https://images.chesscomfiles.com/uploads/v1/user/111867.24a485bc.50x50o.28822501a3cf.png" class="cc-bot-avatar" alt="Martin">
+              <div class="cc-bot-info">
+                <span class="cc-bot-name">Martin</span>
+                <span class="cc-bot-sub">Iniciante • 250</span>
+              </div>
+            </div>
+
+            <div class="cc-bot-card active" data-bot-id="nelson" data-diff="medium" data-rating="1300" data-name="Nelson" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png">
+              <img src="https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png" class="cc-bot-avatar" alt="Nelson">
+              <div class="cc-bot-info">
+                <span class="cc-bot-name">Nelson</span>
+                <span class="cc-bot-sub">Intermediário • 1300</span>
+              </div>
+            </div>
+
+            <div class="cc-bot-card" data-bot-id="isabel" data-diff="hard" data-rating="1600" data-name="Isabel" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/111876.5bc5f893.50x50o.ca576a086cf9.png">
+              <img src="https://images.chesscomfiles.com/uploads/v1/user/111876.5bc5f893.50x50o.ca576a086cf9.png" class="cc-bot-avatar" alt="Isabel">
+              <div class="cc-bot-info">
+                <span class="cc-bot-name">Isabel</span>
+                <span class="cc-bot-sub">Avançada • 1600</span>
+              </div>
+            </div>
+
+            <div class="cc-bot-card" data-bot-id="stockfish" data-diff="hard" data-rating="2500" data-name="Mestre IA" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/41.1a1df277.50x50o.bb7d32c0d510.png">
+              <img src="https://images.chesscomfiles.com/uploads/v1/user/41.1a1df277.50x50o.bb7d32c0d510.png" class="cc-bot-avatar" alt="Mestre IA">
+              <div class="cc-bot-info">
+                <span class="cc-bot-name">Mestre IA</span>
+                <span class="cc-bot-sub">Mestre • 2500</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lado -->
+          <div class="cc-side-selection">
+            <span class="cc-side-label">JOGAR COM:</span>
+            <div class="cc-side-btns">
+              <button class="cc-side-btn active" data-color="white">♔ Brancas</button>
+              <button class="cc-side-btn" data-color="random">☯ Aleatório</button>
+              <button class="cc-side-btn" data-color="black">♚ Pretas</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção Multiplayer -->
+        <div id="modeSectionOnline" class="hidden">
+          <p class="custom-desc">Jogue em tempo real com validação autoritativa no servidor:</p>
+          <div class="cc-multiplayer-box">
+            <button class="cc-btn-secondary" id="btnModalCreateRoom">Criar Nova Sala</button>
+            <div class="cc-or-divider"><span>OU</span></div>
+            <div class="cc-join-input-group">
+              <input type="text" id="inputModalRoomCode" placeholder="CÓDIGO DE 6 DÍGITOS" maxlength="6" autocomplete="off">
+              <button class="cc-btn-secondary" id="btnModalJoinRoom">Entrar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="cc-btn-play-green btn-sm" id="btnConfirmStartGame">Começar Batalha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: INVENTÁRIO & SKINS (CUSTOMIZADOR DE PEÇAS E TABULEIRO)
+       ========================================================================== -->
+  <div id="customizeModal" class="modal-backdrop hidden">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">📦 Inventário & Skins</h3>
+        <button id="customizeCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="customizer-tabs">
+          <button class="custom-tab-btn active" data-target="boardThemeTab">Temas de Tabuleiro</button>
+          <button class="custom-tab-btn" data-target="piecePackTab">Pacotes de Peças</button>
+          <button class="custom-tab-btn" data-target="pieceMixTab">Peça por Peça</button>
+        </div>
+        <div id="boardThemeTab" class="custom-tab-panel active">
+          <div class="themes-grid" id="boardThemesGrid"></div>
+        </div>
+        <div id="piecePackTab" class="custom-tab-panel">
+          <div class="packs-grid" id="piecePacksGrid"></div>
+        </div>
+        <div id="pieceMixTab" class="custom-tab-panel">
+          <div class="piecemix-grid" id="pieceMixGrid"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="resetCustomBtn" class="cc-btn-secondary btn-sm">Restaurar Padrão</button>
+        <button id="saveCustomBtn" class="cc-btn-play-green btn-sm">Equipar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: PASSE DE BATALHA (MAESTRIA POR CAPTURAS)
+       ========================================================================== -->
+  <div id="battlePassModal" class="modal-backdrop hidden">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">👑 Passe de Batalha & Maestria</h3>
+        <button id="battlePassCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="bp-status-banner">
+          <div class="bp-banner-top">
+            <div>
+              <span class="bp-banner-level" id="bpModalLevel">NÍVEL 1</span>
+              <h4 class="bp-banner-title">Mestre em Ascensão</h4>
+            </div>
+            <div class="bp-banner-score">
+              <span class="bp-score-num" id="bpModalTotalPoints">0</span>
+              <span class="bp-score-label">Peças Capturadas</span>
+            </div>
+          </div>
+          <div class="bp-progress-bar-container">
+            <div class="bp-progress-bar-fill" id="bpModalProgressBar" style="width: 0%;"></div>
+          </div>
+          <div class="bp-progress-subtext">
+            <span id="bpModalNextGoal">0 / 10 capturas para a próxima skin</span>
+            <span class="bp-info-hint">+1 ponto por peça capturada em jogo</span>
+          </div>
+        </div>
+        <div class="bp-tiers-list" id="bpTiersList"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="battlePassConfirmCloseBtn" class="cc-btn-play-green btn-sm">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 4: CONFIGURAÇÕES
+       ========================================================================== -->
+  <div id="settingsModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Configurações</h3>
+        <button id="settingsCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <label class="input-label">Nome do Jogador:</label>
+          <input type="text" id="settingsPlayerNameInput" class="room-code-field" placeholder="Ex: Jogador123" maxlength="20">
+        </div>
+        <div class="settings-group mt-3">
+          <label class="input-label">Efeitos Sonoros:</label>
+          <button id="settingsSoundToggleBtn" class="cc-btn-secondary">Som: Ativado 🔊</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="settingsSaveBtn" class="cc-btn-play-green btn-sm">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 5: AMIGOS / SOCIAL
+       ========================================================================== -->
+  <div id="friendsModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">👥 Jogar com Amigos</h3>
+        <button id="friendsCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="custom-desc">Convide seus amigos para disputar partidas de xadrez em tempo real:</p>
+        <section class="account-panel" aria-label="Conta e saldo">
+          <div id="accountSignedOut">
+            <button id="accountFormToggleBtn" class="cc-btn-secondary mb-3" type="button">Entrar ou criar conta</button>
+            <form id="accountForm" class="account-form hidden">
+              <div class="cc-mode-toggle account-mode-toggle">
+                <button class="cc-mode-btn active" type="button" data-account-mode="login">Entrar</button>
+                <button class="cc-mode-btn" type="button" data-account-mode="register">Criar conta</button>
+              </div>
+              <label class="input-label" for="accountUsername">Nome de usuário</label>
+              <input id="accountUsername" class="room-code-field" type="text" minlength="3" maxlength="20" pattern="[A-Za-z0-9_]+" autocomplete="username" required>
+              <label class="input-label" for="accountPassword">Senha</label>
+              <input id="accountPassword" class="room-code-field" type="password" minlength="8" maxlength="128" autocomplete="current-password" required>
+              <label id="accountConfirmPasswordLabel" class="input-label hidden" for="accountConfirmPassword">Confirmar senha</label>
+              <input id="accountConfirmPassword" class="room-code-field hidden" type="password" minlength="8" maxlength="128" autocomplete="new-password">
+              <button id="accountSubmitBtn" class="cc-btn-play-green btn-sm mt-3" type="submit">Entrar</button>
+            </form>
+          </div>
+          <div id="accountSignedIn" class="hidden">
+            <p class="account-welcome">Conectado como <strong id="accountUsernameDisplay"></strong></p>
+            <p id="accountProgress" class="account-progress"></p>
+            <button id="accountLogoutBtn" class="cc-btn-secondary" type="button">Sair da conta</button>
+          </div>
+          <p id="accountFormStatus" class="account-status" role="status" aria-live="polite"></p>
+        </section>
+        <button id="btnFriendsCreateRoom" class="cc-btn-play-green btn-block mb-3">Criar Sala Rápida</button>
+        <div class="cc-join-input-group">
+          <input type="text" id="inputFriendsCode" placeholder="CÓDIGO DA SALA" maxlength="6">
+          <button class="cc-btn-secondary" id="btnFriendsJoin">Entrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Geral de Confirmação/Mensagens -->
+  <div id="appModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">Aviso</h3>
+        <button id="modalCloseBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modalMessage">Mensagem</p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalConfirmBtn" class="cc-btn-play-green btn-sm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="toast-notification hidden"></div>
+
+  <!-- SCRIPTS & DEPENDÊNCIAS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/piecesData.js"></script>
+  <script src="js/battlePass.js"></script>
+  <script src="js/client.js"></script>
+</body>
+</html>
