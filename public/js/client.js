@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let clockInterval = null;
 
   // Perfil local e saldos da conta, carregados do servidor quando houver sessão.
-  let playerName = localStorage.getItem('xadrez_player_name') || 'Jogador123';
+  let playerName = localStorage.getItem('xadrez_player_name') || 'Jogador67';
   let playerCoins = 10;
   let playerGems = 0;
   let currentAccount = null;
@@ -67,10 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hotspots da Interface Principal (Castelo)
   const btnMenuProfile = document.getElementById('btnMenuProfile');
   const castleProfileName = document.getElementById('castleProfileName');
+  const castleProfileLevel = document.getElementById('castleProfileLevel');
+  const castleProfileXp = document.getElementById('castleProfileXp');
+  const profilePhotoInput = document.getElementById('profilePhotoInput');
+  const profileAvatarImage = document.getElementById('profileAvatarImage');
   const castleCoinCounter = document.getElementById('castleCoinCounter');
   const castleGemCounter = document.getElementById('castleGemCounter');
   const btnMenuFriends = document.getElementById('btnMenuFriends');
+  const btnMenuPlay = document.getElementById('btnMenuPlay');
+  const btnMenuBattlePassArt = document.getElementById('btnMenuBattlePassArt');
+  const btnMenuInventoryArt = document.getElementById('btnMenuInventoryArt');
   const btnMenuGameModes = document.getElementById('btnMenuGameModes');
+  const btnMenuGameModesArt = document.getElementById('btnMenuGameModesArt');
   const btnMenuInventory = document.getElementById('btnMenuInventory');
   const btnMenuSettings = document.getElementById('btnMenuSettings');
   const btnMenuBattlePass = document.getElementById('btnMenuBattlePass');
@@ -372,11 +380,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function updatePlayerProfileUI() {
     if (castleProfileName) castleProfileName.textContent = playerName;
     if (myName) myName.textContent = playerName;
+    if (castleProfileLevel || castleProfileXp) {
+      const progress = window.BattlePass?.getProgressToNext?.();
+      if (progress) {
+        if (castleProfileLevel) castleProfileLevel.textContent = progress.level;
+        if (castleProfileXp) castleProfileXp.textContent = `${progress.current} / 50 XP`;
+      }
+    }
   }
 
   function updateCurrencyUI() {
     if (castleCoinCounter) castleCoinCounter.textContent = playerCoins;
     if (castleGemCounter) castleGemCounter.textContent = playerGems;
+  }
+
+  function loadProfilePhoto() {
+    const savedPhoto = localStorage.getItem('xadrez_profile_photo');
+    if (profileAvatarImage) profileAvatarImage.src = savedPhoto || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
   }
 
   function applyAccountProfile(account) {
@@ -426,16 +446,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   updatePlayerProfileUI();
   updateCurrencyUI();
+  loadProfilePhoto();
   loadAccount();
 
   // ==========================================================================
   // EVENT LISTENERS DOS BOTÕES DO MENU PRINCIPAL (DA FOTO)
   // ==========================================================================
 
+  btnMenuPlay.addEventListener('click', () => {
+    playBattleStartSound();
+    currentGameMode = 'bot';
+    openGameArena();
+    startNewGame();
+  });
+
   // 1. Modos de Jogo (Direita - Roxo)
   btnMenuGameModes.addEventListener('click', () => {
     playUiClickSound();
     spawnFloatingBubble(btnMenuGameModes, '🏆 Modos de Jogo', '#c084fc');
+    gameModesModal.classList.remove('hidden');
+  });
+
+  btnMenuGameModesArt.addEventListener('click', () => {
+    playUiClickSound();
     gameModesModal.classList.remove('hidden');
   });
 
@@ -513,6 +546,11 @@ document.addEventListener('DOMContentLoaded', () => {
     openCustomizeModal();
   });
 
+  btnMenuInventoryArt.addEventListener('click', () => {
+    playUiClickSound();
+    openCustomizeModal();
+  });
+
   btnQuickCustomize.addEventListener('click', openCustomizeModal);
   customizeCloseBtn.addEventListener('click', () => {
     playUiClickSound();
@@ -551,10 +589,26 @@ document.addEventListener('DOMContentLoaded', () => {
     playUiClickSound();
   });
 
-  settingsSaveBtn.addEventListener('click', () => {
+  settingsSaveBtn.addEventListener('click', async () => {
     playUiClickSound();
     const newName = settingsPlayerNameInput.value.trim();
-    if (newName) {
+    if (!newName) return;
+
+    if (currentAccount) {
+      try {
+        const response = await fetch('/api/auth/me', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: newName })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Não foi possível atualizar o nome.');
+        applyAccountProfile(result.account);
+        showToast(`Nome atualizado para "${result.account.username}"!`);
+      } catch (error) {
+        showToast(error.message);
+      }
+    } else {
       playerName = newName;
       localStorage.setItem('xadrez_player_name', playerName);
       updatePlayerProfileUI();
@@ -567,6 +621,28 @@ document.addEventListener('DOMContentLoaded', () => {
   btnMenuProfile.addEventListener('click', () => {
     spawnFloatingBubble(btnMenuProfile, `👤 ${playerName}`, '#38bdf8');
     openSettingsModal();
+  });
+
+  profilePhotoInput.addEventListener('change', () => {
+    const [file] = profilePhotoInput.files;
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) {
+      showToast('Escolha uma imagem de até 2 MB.');
+      profilePhotoInput.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        localStorage.setItem('xadrez_profile_photo', reader.result);
+        if (profileAvatarImage) profileAvatarImage.src = reader.result;
+        showToast('Foto do perfil atualizada!');
+      } catch (error) {
+        showToast('Não foi possível guardar a foto no navegador.');
+      }
+    };
+    reader.readAsDataURL(file);
   });
 
   // 6. Amigos / Social (Topo Direito)
@@ -664,7 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.disconnect();
         socket = null;
       }
-      playerName = localStorage.getItem('xadrez_player_name') || 'Jogador123';
+      playerName = localStorage.getItem('xadrez_player_name') || 'Jogador67';
       applyAccountProfile(null);
       accountFormStatus.textContent = 'Você saiu da conta.';
     } catch (error) {
@@ -713,6 +789,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnMenuBattlePass.addEventListener('click', () => {
     spawnFloatingBubble(btnMenuBattlePass, '👑 Passe de Batalha', '#f59e0b');
+    openBattlePassModal();
+  });
+
+  btnMenuBattlePassArt.addEventListener('click', () => {
+    playFanfareSound();
     openBattlePassModal();
   });
 

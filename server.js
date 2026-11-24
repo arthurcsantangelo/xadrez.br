@@ -15,6 +15,7 @@ import {
   entrarNaConta,
   obterContaDaSessao,
   encerrarSessao,
+  atualizarNomeConta,
   fecharBanco
 } from './src/services/database.js';
 
@@ -100,6 +101,22 @@ app.post('/api/auth/logout', (req, res) => {
   } catch (error) {
     console.error('Erro ao encerrar sessão:', error);
     return res.status(500).json({ error: 'Não foi possível encerrar a sessão.' });
+  }
+});
+
+app.patch('/api/auth/me', (req, res) => {
+  try {
+    const result = atualizarNomeConta(
+      getSessionToken(req.headers.cookie),
+      req.body?.username
+    );
+    if (result.error) {
+      return res.status(400).json({ error: result.error });
+    }
+    return res.json({ account: result.account });
+  } catch (error) {
+    console.error('Erro ao atualizar nome da conta:', error);
+    return res.status(500).json({ error: 'Não foi possível atualizar o nome.' });
   }
 });
 

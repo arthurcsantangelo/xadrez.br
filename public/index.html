@@ -26,8 +26,19 @@
       <div class="castle-canvas">
         <img src="img/menu-bg.jpg" class="castle-bg-img" alt="Xadrez Real Menu">
 
-        <!-- IDs mantidos no DOM para o JS não quebrar (invisíveis) -->
-        <span id="castleProfileName" style="display:none">Jogador123</span>
+        <div class="castle-profile-card" aria-label="Perfil do jogador">
+          <span class="castle-profile-banner">
+            <label class="castle-profile-avatar" for="profilePhotoInput" title="Importar foto do perfil">
+              <img id="profileAvatarImage" class="castle-profile-avatar-image" alt="">
+            </label>
+            <input id="profilePhotoInput" type="file" accept="image/*" hidden>
+            <button id="btnMenuProfile" class="castle-profile-data" type="button" aria-label="Abrir perfil e configurações">
+              <span id="castleProfileName" class="castle-profile-name">Jogador67</span>
+              <span id="castleProfileLevel" class="castle-profile-level">1</span>
+              <span id="castleProfileXp" class="castle-profile-xp">0 / 50 XP</span>
+            </button>
+          </span>
+        </div>
 
         <div class="castle-resource-layer" role="group" aria-label="Recursos do jogador">
           <img src="img/resource-bar.png" class="castle-resource-art" alt="">
@@ -36,8 +47,27 @@
           <button id="btnMenuFriends" class="castle-friends-button" type="button" title="Amigos" aria-label="Abrir tela de amizades"></button>
         </div>
 
+        <button id="btnMenuPlay" class="castle-play-button" type="button" aria-label="Abrir tela de partida">
+          <img src="img/play-button.png" alt="">
+        </button>
+
+        <button id="btnMenuBattlePassArt" class="castle-battle-pass-button" type="button" aria-label="Abrir Passe de Batalha">
+          <img src="img/battle-pass-button.png" alt="">
+        </button>
+
+        <button id="btnMenuInventoryArt" class="castle-inventory-button" type="button" aria-label="Abrir Inventário">
+          <img src="img/inventory-button.png" alt="">
+        </button>
+
+        <button id="btnMenuGameModesArt" class="castle-game-modes-button" type="button" aria-label="Abrir Modos de Jogo">
+          <img src="img/game-modes-button.png" alt="">
+        </button>
+
+        <button id="btnMenuSettingsArt" class="castle-settings-button" type="button" aria-label="Abrir Configuração">
+          <img src="img/settings-button.png" alt="">
+        </button>
+
         <!-- Botões ocultos (referenciados pelo JS, sem visual) -->
-        <button id="btnMenuProfile"   style="display:none"></button>
         <button id="btnMenuGameModes" style="display:none"></button>
         <button id="btnMenuInventory" style="display:none"></button>
         <button id="btnMenuSettings"  style="display:none"></button>
@@ -128,7 +158,7 @@
               <div class="cc-player-meta">
                 <div class="cc-name-row">
                   <span class="cc-flag">🇧🇷</span>
-                  <span class="cc-player-name" id="myName">Jogador123</span>
+                  <span class="cc-player-name" id="myName">Jogador67</span>
                   <span class="cc-rating-badge" id="myRating">1200</span>
                 </div>
                 <div class="cc-captured-pieces" id="myCapturedPieces"></div>
@@ -350,7 +380,7 @@
       <div class="modal-body">
         <div class="settings-group">
           <label class="input-label">Nome do Jogador:</label>
-          <input type="text" id="settingsPlayerNameInput" class="room-code-field" placeholder="Ex: Jogador123" maxlength="20">
+          <input type="text" id="settingsPlayerNameInput" class="room-code-field" placeholder="Ex: Jogador67" maxlength="20">
         </div>
         <div class="settings-group mt-3">
           <label class="input-label">Efeitos Sonoros:</label>

@@ -12,6 +12,7 @@ const {
   entrarNaConta,
   obterContaDaSessao,
   encerrarSessao,
+  atualizarNomeConta,
   salvarPartida,
   fecharBanco
 } = await import('../src/services/database.js');
@@ -48,6 +49,9 @@ test('contas começam com saldo inicial, autenticam e mantêm prêmios de partid
   assert.match(cadastrarConta('alice', 'outra-senha-123').error, /já está em uso/i);
   assert.match(entrarNaConta('Alice', 'senha-incorreta').error, /inválidos/i);
   assert.equal(entrarNaConta('aLiCe', 'senha-segura-123').account.id, aliceResult.account.id);
+  const renamed = atualizarNomeConta(aliceResult.session.token, 'Alice67');
+  assert.equal(renamed.account.username, 'Alice67');
+  assert.match(atualizarNomeConta(aliceResult.session.token, 'A').error, /3 a 20/i);
   assert.equal(obterContaDaSessao(aliceResult.session.token).id, aliceResult.account.id);
   encerrarSessao(aliceResult.session.token);
   assert.equal(obterContaDaSessao(aliceResult.session.token), null);

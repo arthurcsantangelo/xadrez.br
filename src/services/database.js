@@ -160,6 +160,33 @@ export function encerrarSessao(token) {
     .run(createHash('sha256').update(token).digest('hex'));
 }
 
+export function atualizarNomeConta(token, username) {
+  if (typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) {
+    return { error: 'Você precisa estar conectado.' };
+  }
+  const validationError = validateCredentials(username, 'senha-placeholder-123');
+  if (validationError) return { error: 'O nome deve ter de 3 a 20 caracteres (letras, números ou _).' };
+
+  const account = obterContaDaSessao(token);
+  if (!account) return { error: 'Sessão inválida ou expirada.' };
+
+  const trimmedUsername = username.trim();
+  try {
+    database.prepare(`
+      UPDATE contas
+      SET nome_usuario = ?, nome_normalizado = ?
+      WHERE id = ?
+    `).run(trimmedUsername, trimmedUsername.toLowerCase(), account.id);
+  } catch (error) {
+    if (error.errcode === 2067) {
+      return { error: 'Esse nome de usuário já está em uso.' };
+    }
+    throw error;
+  }
+
+  return { account: getAccountById(account.id) };
+}
+
 /**
  * Persists a completed server-validated online game and its currency rewards atomically.
  */
@@ -271,6 +298,7 @@ export default {
   entrarNaConta,
   obterContaDaSessao,
   encerrarSessao,
+  atualizarNomeConta,
   salvarPartida,
   obterPartidaPorId,
   obterPartidasRecentes,
