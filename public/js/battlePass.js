@@ -4,7 +4,7 @@
  * 
  * Regras:
  * - Cada peça capturada na partida concede +1 Ponto de Maestria.
- * - A cada 10 pontos acumulados, uma nova skin exclusiva de peça ou tema é desbloqueada.
+ * - Temas de tabuleiro são desbloqueados por progresso; skins exclusivas de peças estão desativadas.
  * - Progresso e inventário são salvos no localStorage.
  */
 
@@ -14,19 +14,19 @@ const BattlePass = {
     {
       level: 1,
       pointsRequired: 0,
-      rewardId: 'wikipedia',
+      rewardId: 'original',
       type: 'pack',
-      name: 'Clássico Torneio',
-      description: 'Conjunto inicial desbloqueado por padrão.',
+      name: 'Heróis Anime',
+      description: 'Conjunto base com silhuetas distintas, disponível desde o início.',
       iconSymbol: '♔'
     },
     {
       level: 2,
       pointsRequired: 10,
-      rewardId: 'cburnett',
-      type: 'pack',
-      name: 'Neo Vector (Lichess)',
-      description: 'Peças em vetor de alta definição com traços refinados.',
+      rewardId: 'future-piece-level-2',
+      type: 'disabled',
+      name: 'Skin exclusiva de peça',
+      description: 'Novas figuras exclusivas serão adicionadas em uma atualização futura.',
       iconSymbol: '♘'
     },
     {
@@ -41,10 +41,10 @@ const BattlePass = {
     {
       level: 4,
       pointsRequired: 30,
-      rewardId: 'merida',
-      type: 'pack',
-      name: 'Mérida Elegance',
-      description: 'Estilo editorial fino para Damas e Bispos.',
+      rewardId: 'future-piece-level-4',
+      type: 'disabled',
+      name: 'Skin exclusiva de peça',
+      description: 'Novas figuras exclusivas serão adicionadas em uma atualização futura.',
       iconSymbol: '♕'
     },
     {
@@ -59,10 +59,10 @@ const BattlePass = {
     {
       level: 6,
       pointsRequired: 50,
-      rewardId: 'alpha',
-      type: 'pack',
-      name: 'Alpha Tournament',
-      description: 'Geometria clássica robusta para Torres e Cavalos.',
+      rewardId: 'future-piece-level-6',
+      type: 'disabled',
+      name: 'Skin exclusiva de peça',
+      description: 'Novas figuras exclusivas serão adicionadas em uma atualização futura.',
       iconSymbol: '♖'
     },
     {
@@ -77,10 +77,10 @@ const BattlePass = {
     {
       level: 8,
       pointsRequired: 70,
-      rewardId: 'dubrovny',
-      type: 'pack',
-      name: 'Dubrovnik Histórico',
-      description: 'A lendária skin das Olimpíadas de 1950.',
+      rewardId: 'future-piece-level-8',
+      type: 'disabled',
+      name: 'Skin exclusiva de peça',
+      description: 'Novas figuras exclusivas serão adicionadas em uma atualização futura.',
       iconSymbol: '♔'
     },
     {
@@ -97,7 +97,11 @@ const BattlePass = {
   // Inicializa dados do jogador a partir do localStorage
   getState() {
     const points = parseInt(localStorage.getItem('xadrez_bp_points') || '0', 10);
-    const unlocked = JSON.parse(localStorage.getItem('xadrez_bp_unlocked') || '["wikipedia", "tournament"]');
+    const savedUnlocks = JSON.parse(localStorage.getItem('xadrez_bp_unlocked') || '["original", "tournament"]');
+    const availableRewards = new Set(this.rewards.filter(reward => reward.type !== 'disabled').map(reward => reward.rewardId));
+    const unlocked = [...new Set(savedUnlocks.filter(id => availableRewards.has(id)))];
+    if (!unlocked.includes('original')) unlocked.push('original');
+    if (!unlocked.includes('tournament')) unlocked.push('tournament');
     return { points, unlocked };
   },
 
@@ -142,7 +146,7 @@ const BattlePass = {
 
     // Checa se desbloqueou novas recompensas
     this.rewards.forEach(reward => {
-      if (state.points >= reward.pointsRequired && !state.unlocked.includes(reward.rewardId)) {
+      if (reward.type !== 'disabled' && state.points >= reward.pointsRequired && !state.unlocked.includes(reward.rewardId)) {
         state.unlocked.push(reward.rewardId);
         newUnlocks.push(reward);
       }
@@ -160,8 +164,7 @@ const BattlePass = {
 
   // Verifica se uma skin ou tema está desbloqueado
   isUnlocked(id) {
-    // Wikipedia e Tournament são livres por padrão
-    if (id === 'wikipedia' || id === 'tournament') return true;
+    if (id === 'original' || id === 'tournament') return true;
     const { unlocked } = this.getState();
     return unlocked.includes(id);
   },
@@ -170,10 +173,12 @@ const BattlePass = {
   getAllTiers() {
     const { points, unlocked } = this.getState();
     return this.rewards.map(reward => {
-      const isUnlocked = unlocked.includes(reward.rewardId) || points >= reward.pointsRequired;
+      const isDisabled = reward.type === 'disabled';
+      const isUnlocked = !isDisabled && (unlocked.includes(reward.rewardId) || points >= reward.pointsRequired);
       const progress = Math.min(points, reward.pointsRequired);
       return {
         ...reward,
+        isDisabled,
         isUnlocked,
         progress,
         pointsRemaining: Math.max(0, reward.pointsRequired - points)

@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentGameMode = 'bot'; // 'bot' ou 'multiplayer'
   let playerRole = 'white';     // Para multiplayer: 'white', 'black', 'spectator'
+  let battleIntroReturnToModes = false;
+  let battleIntroIsResult = false;
+  let gameIsResigned = false;
 
   // Configurações do Bot
   let currentBot = {
@@ -27,12 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
     name: 'Nelson',
     diff: 'medium',
     rating: 1300,
-    avatar: 'https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png'
+    avatar: 'img/bot-avatars/nelson.png'
   };
 
   let playerColor = 'white';     // 'white' ou 'black'
   let botColor = 'b';
   let isBotThinking = false;
+  let botMoveTimeout = null;
 
   // Relógios de Tempo (10 minutos padrão)
   let whiteTime = 600;
@@ -50,8 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Customização de Tabuleiro e Skins
   let currentBoardTheme = localStorage.getItem('xadrez_board_theme') || 'tournament';
-  let currentGlobalPack = localStorage.getItem('xadrez_piece_pack') || 'cburnett';
-  let currentPieceMix = JSON.parse(localStorage.getItem('xadrez_piece_mix') || '{}');
+  let currentGlobalPack = 'original';
+  let currentPieceMix = {};
+  localStorage.setItem('xadrez_piece_pack', currentGlobalPack);
+  localStorage.setItem('xadrez_piece_mix', JSON.stringify(currentPieceMix));
 
   // Multiplayer
   let currentRoomId = null;
@@ -63,6 +69,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Telas Principais
   const castleMenuScreen = document.getElementById('castleMenuScreen');
   const gameArenaScreen = document.getElementById('gameArenaScreen');
+  const battleIntro = document.getElementById('battleIntro');
+  const battleIntroTitle = document.getElementById('battleIntroTitle');
+  const battleIntroSubtitle = document.getElementById('battleIntroSubtitle');
+  const battleIntroPlayerName = document.getElementById('battleIntroPlayerName');
+  const battleIntroPlayerAvatar = document.getElementById('battleIntroPlayerAvatar');
+  const battleIntroPlayerSide = document.getElementById('battleIntroPlayerSide');
+  const battleIntroOpponentName = document.getElementById('battleIntroOpponentName');
+  const battleIntroOpponentAvatar = document.getElementById('battleIntroOpponentAvatar');
+  const battleIntroOpponentSide = document.getElementById('battleIntroOpponentSide');
+  const battleIntroDifficulty = document.getElementById('battleIntroDifficulty');
+  const battleIntroBackBtn = document.getElementById('battleIntroBackBtn');
+  const battleIntroStartBtn = document.getElementById('battleIntroStartBtn');
 
   // Hotspots da Interface Principal (Castelo)
   const btnMenuProfile = document.getElementById('btnMenuProfile');
@@ -366,6 +384,99 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 60);
   }
 
+  function showBattleIntro(returnToModes = false) {
+    const difficultyNames = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+    const playerPhoto = localStorage.getItem('xadrez_profile_photo');
+
+    battleIntroReturnToModes = returnToModes;
+    battleIntroIsResult = false;
+    battleIntro.classList.remove('is-result', 'is-player-win', 'is-player-loss', 'is-player-draw');
+    battleIntroTitle.textContent = `${playerName} VS ${currentBot.name}`;
+    battleIntroSubtitle.textContent = 'Prepare-se para a batalha!';
+    battleIntroPlayerName.textContent = playerName;
+    battleIntroPlayerAvatar.src = playerPhoto || 'img/profile-shield.png';
+    battleIntroPlayerSide.textContent = 'JOGADOR';
+    battleIntroOpponentName.textContent = currentBot.name;
+    battleIntroOpponentAvatar.src = currentBot.avatar;
+    battleIntroOpponentSide.textContent = 'BOT';
+    battleIntroDifficulty.textContent = `Dificuldade: ${difficultyNames[currentBot.diff] || currentBot.diff}`;
+    battleIntroBackBtn.textContent = returnToModes ? 'Trocar adversário' : 'Voltar ao menu';
+    battleIntroBackBtn.classList.remove('hidden');
+    battleIntroStartBtn.textContent = 'Começar batalha';
+    battleIntro.classList.remove('hidden');
+    battleIntroStartBtn.focus();
+  }
+
+  function showResignationResult({ playerWon, draw = false, opponentName: resultOpponentName, opponentAvatar: resultOpponentAvatar, reason }) {
+    const displayedOpponentName = resultOpponentName || currentBot.name;
+    const playerPhoto = localStorage.getItem('xadrez_profile_photo');
+
+    gameIsResigned = true;
+    isBotThinking = false;
+    if (botMoveTimeout) clearTimeout(botMoveTimeout);
+    botMoveTimeout = null;
+    if (clockInterval) clearInterval(clockInterval);
+
+    battleIntroIsResult = true;
+    battleIntroReturnToModes = false;
+    battleIntro.classList.remove('is-player-win', 'is-player-loss', 'is-player-draw');
+    battleIntro.classList.add('is-result');
+    battleIntro.classList.add(draw ? 'is-player-draw' : playerWon ? 'is-player-win' : 'is-player-loss');
+
+    battleIntroTitle.textContent = draw ? 'Empate' : playerWon ? `Vitória de ${playerName}` : `Derrota de ${playerName}`;
+    battleIntroSubtitle.textContent = draw
+      ? 'A partida terminou empatada.'
+      : playerWon
+        ? `Derrota de ${displayedOpponentName}`
+        : `Vitória de ${displayedOpponentName}`;
+    battleIntroPlayerName.textContent = playerName;
+    battleIntroPlayerAvatar.src = playerPhoto || 'img/profile-shield.png';
+    battleIntroPlayerSide.textContent = draw ? 'EMPATE' : playerWon ? 'VITÓRIA' : 'DERROTA';
+    battleIntroOpponentName.textContent = displayedOpponentName;
+    battleIntroOpponentAvatar.src = resultOpponentAvatar || currentBot.avatar || 'img/profile-shield.png';
+    battleIntroOpponentSide.textContent = draw ? 'EMPATE' : playerWon ? 'DERROTA' : 'VITÓRIA';
+    battleIntroDifficulty.textContent = reason || 'Fim da partida';
+    battleIntroBackBtn.classList.add('hidden');
+    battleIntroStartBtn.textContent = 'Voltar ao menu';
+    battleIntro.classList.remove('hidden');
+    playChessComSound('gameover');
+    battleIntroStartBtn.focus();
+  }
+
+  function startSelectedGame(returnToModes = false) {
+    if (currentGameMode === 'bot') {
+      showBattleIntro(returnToModes);
+      return;
+    }
+
+    playBattleStartSound();
+    openGameArena();
+    startNewGame();
+  }
+
+  battleIntroBackBtn.addEventListener('click', () => {
+    battleIntro.classList.add('hidden');
+    if (battleIntroReturnToModes) gameModesModal.classList.remove('hidden');
+    battleIntroReturnToModes = false;
+  });
+
+  battleIntroStartBtn.addEventListener('click', () => {
+    battleIntro.classList.add('hidden');
+    if (battleIntroIsResult) {
+      battleIntro.classList.remove('is-result', 'is-player-win', 'is-player-loss', 'is-player-draw');
+      battleIntroIsResult = false;
+      gameArenaScreen.classList.remove('active');
+      castleMenuScreen.classList.add('active');
+      btnMenuPlay.focus();
+      return;
+    }
+
+    battleIntroReturnToModes = false;
+    playBattleStartSound();
+    openGameArena();
+    startNewGame();
+  });
+
   function returnToCastleMenu() {
     playUiClickSound();
     gameArenaScreen.classList.remove('active');
@@ -454,10 +565,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
 
   btnMenuPlay.addEventListener('click', () => {
-    playBattleStartSound();
     currentGameMode = 'bot';
-    openGameArena();
-    startNewGame();
+    showBattleIntro();
   });
 
   // 1. Modos de Jogo (Direita - Roxo)
@@ -528,10 +637,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnConfirmStartGame.addEventListener('click', () => {
-    playBattleStartSound();
     gameModesModal.classList.add('hidden');
-    openGameArena();
-    startNewGame();
+    startSelectedGame(true);
   });
 
   // 3. Inventário & Skins (Direita - Verde)
@@ -660,6 +767,8 @@ document.addEventListener('DOMContentLoaded', () => {
   btnFriendsCreateRoom.addEventListener('click', () => {
     playBattleStartSound();
     friendsModal.classList.add('hidden');
+    currentGameMode = 'multiplayer';
+    currentRoomId = null;
     connectSocket();
     socket.emit('create_room', { playerName });
     openGameArena();
@@ -670,6 +779,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!code) return showToast('Digite o código de 6 caracteres.');
     playBattleStartSound();
     friendsModal.classList.add('hidden');
+    currentGameMode = 'multiplayer';
+    currentRoomId = null;
     connectSocket();
     socket.emit('join_room', { roomId: code, playerName });
     openGameArena();
@@ -759,14 +870,14 @@ document.addEventListener('DOMContentLoaded', () => {
     bpModalLevel.textContent = `NÍVEL ${p.level}`;
     bpModalTotalPoints.textContent = p.totalPoints;
     bpModalProgressBar.style.width = `${p.percent}%`;
-    bpModalNextGoal.textContent = `${p.current} / 10 capturas para a próxima skin`;
+    bpModalNextGoal.textContent = `${p.current} / 10 capturas para o próximo desbloqueio`;
 
     const tiers = window.BattlePass.getAllTiers();
     bpTiersList.innerHTML = '';
 
     tiers.forEach(t => {
       const row = document.createElement('div');
-      row.className = 'bp-tier-card';
+      row.className = `bp-tier-card ${t.isDisabled ? 'disabled' : ''}`;
       row.innerHTML = `
         <div class="bp-tier-badge">NVL ${t.level}</div>
         <div class="bp-tier-icon">${t.iconSymbol}</div>
@@ -775,7 +886,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="bp-tier-desc">${t.description}</span>
         </div>
         <div>
-          ${t.isUnlocked 
+          ${t.isDisabled
+            ? `<span class="bp-status-pill disabled">Indisponível</span>`
+            : t.isUnlocked
             ? `<span class="bp-status-pill unlocked">Desbloqueado</span>`
             : `<span class="bp-status-pill locked">Faltam ${t.pointsRemaining} pts</span>`
           }
@@ -954,22 +1067,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const moves = gameInst.moves({ verbose: true });
       if (moves.length === 0) return null;
 
-      // 1. Martin (250)
+      // Fácil escolhe uma jogada legal aleatória.
       if (diff === 'easy') {
-        if (Math.random() < 0.65) {
-          return moves[Math.floor(Math.random() * moves.length)];
-        }
+        return moves[Math.floor(Math.random() * moves.length)];
       }
 
-      // 2. Nelson (1300)
-      if (diff === 'medium') {
-        const queenMoves = moves.filter(m => m.piece === 'q');
-        if (queenMoves.length > 0 && Math.random() < 0.4) {
-          return queenMoves[Math.floor(Math.random() * queenMoves.length)];
-        }
-      }
-
-      // 3. Isabel / Mestre IA (1600 / 2500)
+      // Médio analisa 2 plies; difícil analisa 3.
       let depth = 2;
       if (diff === 'hard') depth = 3;
 
@@ -998,8 +1101,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!piece || piece.length < 2) return '';
     const type = piece[1].toLowerCase();
     const packId = currentPieceMix[type] || currentGlobalPack;
-    const pack = window.ChessThemes?.pieceSets[packId] || window.ChessThemes?.pieceSets.cburnett;
-    return pack ? pack.getUrl(piece) : `img/chesspieces/wikipedia/${piece}.png`;
+    const pack = window.ChessThemes?.pieceSets[packId] || window.ChessThemes?.pieceSets.original;
+    if (!pack) throw new Error('O conjunto original de peças não foi carregado.');
+    return pack.getUrl(piece);
   }
 
   function applyBoardTheme(themeId) {
@@ -1044,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (clockInterval) clearInterval(clockInterval);
 
     clockInterval = setInterval(() => {
-      if (game.game_over()) {
+      if (game.game_over() || gameIsResigned) {
         clearInterval(clockInterval);
         return;
       }
@@ -1193,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleDragStart(source, piece, position, orientation) {
     initAudio();
-    if (game.game_over() || isBotThinking) return false;
+    if (game.game_over() || gameIsResigned || isBotThinking) return false;
     if (currentGameMode === 'multiplayer' && playerRole === 'spectator') return false;
 
     const isWhiteTurn = game.turn() === 'w';
@@ -1204,6 +1308,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleDrop(source, target) {
+    if (gameIsResigned) return 'snapback';
     if (source === target) return;
 
     const move = game.move({
@@ -1263,8 +1368,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isBotThinking = true;
     const delay = 350 + Math.floor(Math.random() * 400);
 
-    setTimeout(() => {
-      if (game.game_over()) {
+    botMoveTimeout = setTimeout(() => {
+      botMoveTimeout = null;
+      if (game.game_over() || gameIsResigned) {
         isBotThinking = false;
         return;
       }
@@ -1348,6 +1454,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // INICIAR PARTIDA
   // ==========================================================================
   function startNewGame() {
+    if (botMoveTimeout) clearTimeout(botMoveTimeout);
+    botMoveTimeout = null;
+    isBotThinking = false;
+    gameIsResigned = false;
     initAudio();
     game.reset();
     moveHistory = [];
@@ -1368,13 +1478,16 @@ document.addEventListener('DOMContentLoaded', () => {
       botColor = playerColor === 'white' ? 'b' : 'w';
       arenaModeLabel.textContent = `Partida vs ${currentBot.name}`;
 
-      showToast(`Partida iniciada contra ${currentBot.name}!`);
+      showToast(`Partida iniciada contra ${currentBot.name}. Bots não concedem moedas.`);
 
       if (playerColor === 'black') {
         triggerBotMove();
       }
     } else {
       arenaModeLabel.textContent = `Partida Online (${currentRoomId || 'Multiplayer'})`;
+      if (!currentAccount) {
+        showToast('Modo visitante: entre em uma conta para receber e salvar moedas.');
+      }
     }
 
     startClocks();
@@ -1391,6 +1504,7 @@ document.addEventListener('DOMContentLoaded', () => {
       socket = io();
 
       socket.on('connect', () => {
+        loadAccount();
         showToast('Conectado ao servidor multiplayer');
       });
 
@@ -1398,12 +1512,29 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(message || 'Não foi possível concluir a ação.');
       });
 
+      socket.on('game_ended', ({ winner, reason, fen }) => {
+        if (fen && board) {
+          game.load(fen);
+          board.position(fen);
+        }
+        if (!reason?.startsWith('Desistência')) return;
+        if (playerRole !== 'white' && playerRole !== 'black') return;
+
+        showResignationResult({
+          playerWon: winner === playerRole,
+          draw: winner === 'draw',
+          opponentName: opponentName.textContent || 'Oponente',
+          opponentAvatar: opponentAvatarImg.getAttribute('src'),
+          reason
+        });
+      });
+
       socket.on('move_error', ({ message }) => {
         showToast(message || 'Lance inválido.');
       });
 
       socket.on('economy_updated', ({ account, coinsEarned, rubiesEarned }) => {
-        if (!currentAccount || account.id !== currentAccount.id) return;
+        if (!account?.id || (currentAccount && account.id !== currentAccount.id)) return;
         applyAccountProfile(account);
         const rewards = [];
         if (coinsEarned > 0) rewards.push(`+${coinsEarned} moedas`);
@@ -1428,6 +1559,7 @@ document.addEventListener('DOMContentLoaded', () => {
           opponentName.textContent = room.players.white?.name || 'Oponente';
           opponentRating.textContent = '1200';
         }
+        opponentAvatarImg.src = 'img/profile-shield.png';
 
         arenaModeLabel.textContent = `Sala: ${currentRoomId}`;
         updateBoardState();
@@ -1449,6 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
       socket.on('rematch_started', ({ role, message }) => {
         playerRole = role;
         playerColor = role === 'black' ? 'black' : 'white';
+        gameIsResigned = false;
         game.reset();
         board.position('start');
         board.orientation(playerColor);
@@ -1465,6 +1598,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Ações no Modal de Modos (Multiplayer)
   btnModalCreateRoom.addEventListener('click', () => {
     gameModesModal.classList.add('hidden');
+    currentGameMode = 'multiplayer';
+    currentRoomId = null;
     connectSocket();
     socket.emit('create_room', { playerName });
     openGameArena();
@@ -1474,6 +1609,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const code = inputModalRoomCode.value.trim().toUpperCase();
     if (!code) return showToast('Digite o código de 6 caracteres.');
     gameModesModal.classList.add('hidden');
+    currentGameMode = 'multiplayer';
+    currentRoomId = null;
     connectSocket();
     socket.emit('join_room', { roomId: code, playerName });
     openGameArena();
@@ -1483,16 +1620,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // CONTROLES DE PARTIDA (DESISTIR / REVANCHE)
   // ==========================================================================
   btnResign.addEventListener('click', () => {
-    if (game.game_over()) return;
+    if (game.game_over() || gameIsResigned) return;
     showModal({
       title: 'Confirmar Desistência',
       message: 'Você tem certeza que deseja abandonar a partida?',
       confirmText: 'Sim, Desistir',
       onConfirm: () => {
-        playChessComSound('gameover');
-        gameAlertBox.className = 'cc-status-alert-box';
-        gameAlertText.textContent = 'Você abandonou a partida.';
-        gameAlertBox.classList.remove('hidden');
+        if (currentGameMode === 'multiplayer') {
+          if (!socket || !currentRoomId || playerRole === 'spectator') {
+            showToast('Não há uma partida online ativa para desistir.');
+            return;
+          }
+
+          socket.emit('resign_game', { roomId: currentRoomId });
+          return;
+        }
+
+        showResignationResult({
+          playerWon: false,
+          opponentName: currentBot.name,
+          opponentAvatar: currentBot.avatar,
+          reason: 'Desistência'
+        });
       }
     });
   });
@@ -1642,8 +1791,10 @@ document.addEventListener('DOMContentLoaded', () => {
   resetCustomBtn.addEventListener('click', () => {
     playUiClickSound();
     currentBoardTheme = 'tournament';
-    currentGlobalPack = 'cburnett';
+    currentGlobalPack = 'original';
     currentPieceMix = {};
+    localStorage.setItem('xadrez_piece_pack', currentGlobalPack);
+    localStorage.setItem('xadrez_piece_mix', JSON.stringify(currentPieceMix));
     applyBoardTheme('tournament');
     renderCustomizer();
     if (board) board.position(game.fen());

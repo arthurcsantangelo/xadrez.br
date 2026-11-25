@@ -61,6 +61,7 @@ test('contas começam com saldo inicial, autenticam e mantêm prêmios de partid
     const result = await salvarPartida(match);
     assert.equal(result.recompensas.white.moedasRecebidas, 5);
     assert.equal(result.recompensas.white.rubisRecebidos, win === 10 ? 1 : 0);
+    assert.equal(result.recompensas.white.conta.coins, 10 + 5 * win);
   }
 
   const afterTenWins = await salvarPartida(createMatch('alice-win-10', 'white', aliceResult.account.id, null));
@@ -70,8 +71,12 @@ test('contas começam com saldo inicial, autenticam e mantêm prêmios de partid
   const draw = await salvarPartida(createMatch('draw', 'draw', aliceResult.account.id, bobResult.account.id));
   assert.equal(draw.recompensas.white.moedasRecebidas, 2);
   assert.equal(draw.recompensas.black.moedasRecebidas, 2);
+  assert.equal(draw.recompensas.white.conta.coins, 62);
+  assert.equal(draw.recompensas.black.conta.coins, 12);
 
   const loss = await salvarPartida(createMatch('bob-loss', 'white', aliceResult.account.id, bobResult.account.id));
   assert.equal(loss.recompensas.black.moedasRecebidas, 0);
   assert.equal(loss.recompensas.white.moedasRecebidas, 5);
+  assert.equal(loss.recompensas.white.conta.coins, 67);
+  assert.equal(loss.recompensas.black.conta.coins, 12);
 });

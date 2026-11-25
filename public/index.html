@@ -128,7 +128,7 @@
           <div class="cc-player-card cc-opponent" id="opponentCard">
             <div class="cc-player-info">
               <div class="cc-avatar-box">
-                <img src="https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png" class="cc-avatar-img" id="opponentAvatarImg" alt="Oponente">
+                <img src="img/bot-avatars/nelson.png" class="cc-avatar-img" id="opponentAvatarImg" alt="Oponente">
               </div>
               <div class="cc-player-meta">
                 <div class="cc-name-row">
@@ -234,36 +234,28 @@
         <!-- Seção Bot -->
         <div id="modeSectionBot">
           <h4 class="custom-desc">Selecione o seu adversário:</h4>
-          <div class="cc-bots-grid">
-            <div class="cc-bot-card" data-bot-id="martin" data-diff="easy" data-rating="250" data-name="Martin" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/111867.24a485bc.50x50o.28822501a3cf.png">
-              <img src="https://images.chesscomfiles.com/uploads/v1/user/111867.24a485bc.50x50o.28822501a3cf.png" class="cc-bot-avatar" alt="Martin">
+          <div class="cc-bots-grid" aria-label="Níveis de dificuldade dos bots">
+            <div class="cc-bot-card" data-bot-id="martin" data-diff="easy" data-rating="250" data-name="Martin" data-avatar="img/bot-avatars/martin.png">
+              <img src="img/bot-avatars/martin.png" class="cc-bot-avatar" alt="Martin">
               <div class="cc-bot-info">
                 <span class="cc-bot-name">Martin</span>
-                <span class="cc-bot-sub">Iniciante • 250</span>
+                <span class="cc-bot-sub">Fácil • 250</span>
               </div>
             </div>
 
-            <div class="cc-bot-card active" data-bot-id="nelson" data-diff="medium" data-rating="1300" data-name="Nelson" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png">
-              <img src="https://images.chesscomfiles.com/uploads/v1/user/111874.e72daef0.50x50o.5d9e5b018593.png" class="cc-bot-avatar" alt="Nelson">
+            <div class="cc-bot-card active" data-bot-id="nelson" data-diff="medium" data-rating="1300" data-name="Nelson" data-avatar="img/bot-avatars/nelson.png">
+              <img src="img/bot-avatars/nelson.png" class="cc-bot-avatar" alt="Nelson">
               <div class="cc-bot-info">
                 <span class="cc-bot-name">Nelson</span>
-                <span class="cc-bot-sub">Intermediário • 1300</span>
+                <span class="cc-bot-sub">Médio • 1300</span>
               </div>
             </div>
 
-            <div class="cc-bot-card" data-bot-id="isabel" data-diff="hard" data-rating="1600" data-name="Isabel" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/111876.5bc5f893.50x50o.ca576a086cf9.png">
-              <img src="https://images.chesscomfiles.com/uploads/v1/user/111876.5bc5f893.50x50o.ca576a086cf9.png" class="cc-bot-avatar" alt="Isabel">
+            <div class="cc-bot-card" data-bot-id="isabel" data-diff="hard" data-rating="1600" data-name="Isabel" data-avatar="img/bot-avatars/isabel.png">
+              <img src="img/bot-avatars/isabel.png" class="cc-bot-avatar" alt="Isabel">
               <div class="cc-bot-info">
                 <span class="cc-bot-name">Isabel</span>
-                <span class="cc-bot-sub">Avançada • 1600</span>
-              </div>
-            </div>
-
-            <div class="cc-bot-card" data-bot-id="stockfish" data-diff="hard" data-rating="2500" data-name="Mestre IA" data-avatar="https://images.chesscomfiles.com/uploads/v1/user/41.1a1df277.50x50o.bb7d32c0d510.png">
-              <img src="https://images.chesscomfiles.com/uploads/v1/user/41.1a1df277.50x50o.bb7d32c0d510.png" class="cc-bot-avatar" alt="Mestre IA">
-              <div class="cc-bot-info">
-                <span class="cc-bot-name">Mestre IA</span>
-                <span class="cc-bot-sub">Mestre • 2500</span>
+                <span class="cc-bot-sub">Difícil • 1600</span>
               </div>
             </div>
           </div>
@@ -299,6 +291,40 @@
     </div>
   </div>
 
+  <section id="battleIntro" class="battle-intro hidden" role="dialog" aria-modal="true" aria-labelledby="battleIntroTitle">
+    <div class="battle-intro-panel">
+      <p class="battle-intro-eyebrow">XADREZ REAL • DUELO</p>
+      <h2 id="battleIntroTitle" class="battle-intro-title">Jogador VS Bot</h2>
+      <p id="battleIntroSubtitle" class="battle-intro-subtitle">Prepare-se para a batalha!</p>
+
+      <div class="battle-intro-matchup">
+        <div class="battle-intro-fighter battle-intro-player">
+          <div class="battle-intro-avatar-frame">
+            <img id="battleIntroPlayerAvatar" class="battle-intro-avatar" src="img/profile-shield.png" alt="">
+          </div>
+          <span id="battleIntroPlayerName" class="battle-intro-name"></span>
+          <span id="battleIntroPlayerSide" class="battle-intro-side">JOGADOR</span>
+        </div>
+
+        <span class="battle-intro-versus" aria-hidden="true">VS</span>
+
+        <div class="battle-intro-fighter battle-intro-opponent">
+          <div class="battle-intro-avatar-frame">
+            <img id="battleIntroOpponentAvatar" class="battle-intro-avatar" src="img/bot-avatars/nelson.png" alt="">
+          </div>
+          <span id="battleIntroOpponentName" class="battle-intro-name"></span>
+          <span id="battleIntroOpponentSide" class="battle-intro-side">BOT</span>
+        </div>
+      </div>
+
+      <p id="battleIntroDifficulty" class="battle-intro-difficulty"></p>
+      <div class="battle-intro-actions">
+        <button id="battleIntroBackBtn" class="cc-btn-secondary" type="button">Voltar ao menu</button>
+        <button id="battleIntroStartBtn" class="cc-btn-play-green" type="button">Começar batalha</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ==========================================================================
        MODAL 2: INVENTÁRIO & SKINS (CUSTOMIZADOR DE PEÇAS E TABULEIRO)
        ========================================================================== -->
@@ -312,7 +338,7 @@
         <div class="customizer-tabs">
           <button class="custom-tab-btn active" data-target="boardThemeTab">Temas de Tabuleiro</button>
           <button class="custom-tab-btn" data-target="piecePackTab">Pacotes de Peças</button>
-          <button class="custom-tab-btn" data-target="pieceMixTab">Peça por Peça</button>
+          <button class="custom-tab-btn" data-target="pieceMixTab" disabled title="Skins exclusivas estarão disponíveis em uma atualização futura">Skins exclusivas (em breve)</button>
         </div>
         <div id="boardThemeTab" class="custom-tab-panel active">
           <div class="themes-grid" id="boardThemesGrid"></div>
@@ -321,6 +347,7 @@
           <div class="packs-grid" id="piecePacksGrid"></div>
         </div>
         <div id="pieceMixTab" class="custom-tab-panel">
+          <p class="piece-skins-disabled-note">As skins exclusivas por peça estão temporariamente desativadas.</p>
           <div class="piecemix-grid" id="pieceMixGrid"></div>
         </div>
       </div>
@@ -356,7 +383,7 @@
             <div class="bp-progress-bar-fill" id="bpModalProgressBar" style="width: 0%;"></div>
           </div>
           <div class="bp-progress-subtext">
-            <span id="bpModalNextGoal">0 / 10 capturas para a próxima skin</span>
+            <span id="bpModalNextGoal">0 / 10 capturas para o próximo desbloqueio</span>
             <span class="bp-info-hint">+1 ponto por peça capturada em jogo</span>
           </div>
         </div>
@@ -407,6 +434,7 @@
         <section class="account-panel" aria-label="Conta e saldo">
           <div id="accountSignedOut">
             <button id="accountFormToggleBtn" class="cc-btn-secondary mb-3" type="button">Entrar ou criar conta</button>
+            <p class="account-reward-note">Entre ou crie uma conta para salvar o saldo. Partidas online validadas dão 5 moedas por vitória e 2 por empate; partidas contra bots não concedem moedas.</p>
             <form id="accountForm" class="account-form hidden">
               <div class="cc-mode-toggle account-mode-toggle">
                 <button class="cc-mode-btn active" type="button" data-account-mode="login">Entrar</button>

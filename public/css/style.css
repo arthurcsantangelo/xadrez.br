@@ -361,9 +361,9 @@ body.castle-theme {
 .castle-play-button {
   position: absolute;
   left: 50%;
-  bottom: 7%;
+  top: 40%;
   z-index: 25;
-  width: 24%;
+  width: 35%;
   aspect-ratio: 2 / 1;
   transform: translateX(-50%);
   padding: 0;
@@ -401,10 +401,10 @@ body.castle-theme {
 
 .castle-battle-pass-button {
   position: absolute;
-  left: 3.5%;
+  left: 4.7%;
   bottom: 7%;
   z-index: 25;
-  width: 20%;
+  width: 22%;
   aspect-ratio: 1179 / 477;
   padding: 0;
   border: 0;
@@ -439,13 +439,18 @@ body.castle-theme {
   border-radius: 18px;
 }
 
+.castle-inventory-button,
+.castle-game-modes-button,
+.castle-settings-button {
+  right: 4%;
+  width: 21%;
+  aspect-ratio: 2.5 / 1;
+}
+
 .castle-inventory-button {
   position: absolute;
-  right: 3.5%;
-  bottom: 7%;
+  top: 61%;
   z-index: 25;
-  width: 20%;
-  aspect-ratio: 310 / 138;
   padding: 0;
   border: 0;
   background: transparent;
@@ -460,7 +465,7 @@ body.castle-theme {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: fill;
   pointer-events: none;
 }
 
@@ -481,11 +486,8 @@ body.castle-theme {
 
 .castle-game-modes-button {
   position: absolute;
-  right: 3.5%;
-  bottom: 22%;
+  top: 43%;
   z-index: 25;
-  width: 30%;
-  aspect-ratio: 1452 / 682;
   padding: 0;
   border: 0;
   background: transparent;
@@ -500,7 +502,7 @@ body.castle-theme {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: fill;
   pointer-events: none;
 }
 
@@ -521,11 +523,8 @@ body.castle-theme {
 
 .castle-settings-button {
   position: absolute;
-  right: 3.5%;
-  bottom: 39%;
+  top: 79%;
   z-index: 25;
-  width: 30%;
-  aspect-ratio: 1677 / 585;
   padding: 0;
   border: 0;
   background: transparent;
@@ -540,7 +539,7 @@ body.castle-theme {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: fill;
   pointer-events: none;
 }
 
@@ -591,6 +590,188 @@ body.castle-theme {
 }
 
 .game-arena-view.active { display: flex; }
+
+/* Apresentação dos adversários antes da partida */
+.battle-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: clamp(0.75rem, 3vw, 2rem);
+  background:
+    linear-gradient(135deg, rgba(5, 11, 22, 0.88), rgba(11, 28, 54, 0.9)),
+    url("../img/menu-bg.jpg") center / cover;
+  backdrop-filter: blur(7px);
+}
+
+.battle-intro-panel {
+  width: min(940px, 100%);
+  padding: clamp(1.25rem, 4vw, 3rem);
+  border: 3px solid #d59b32;
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(31, 55, 97, 0.96), rgba(10, 20, 38, 0.97));
+  box-shadow: 0 0 0 5px rgba(8, 15, 30, 0.8), 0 24px 70px rgba(0, 0, 0, 0.75);
+  text-align: center;
+  animation: battleIntroEnter 0.45s ease-out both;
+}
+
+.battle-intro-eyebrow,
+.battle-intro-side {
+  color: var(--gold-bright);
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-shadow: 0 2px 6px #000;
+}
+
+.battle-intro-eyebrow {
+  font-size: 0.78rem;
+}
+
+.battle-intro-title {
+  margin-top: 0.55rem;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 4vw, 2.6rem);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+  text-shadow: 0 4px 0 #15294a, 0 0 18px rgba(255, 209, 59, 0.4);
+}
+
+.battle-intro-subtitle {
+  margin-top: 0.35rem;
+  color: var(--text-mid);
+}
+
+.battle-intro-matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.65rem, 4vw, 3rem);
+  max-width: 720px;
+  margin: clamp(1.4rem, 4vw, 2.5rem) auto 1rem;
+}
+
+.battle-intro-fighter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.battle-intro-avatar-frame {
+  width: clamp(105px, 19vw, 190px);
+  aspect-ratio: 1;
+  padding: 6px;
+  border: 4px solid var(--gold-bright);
+  border-radius: 24px;
+  background: linear-gradient(145deg, #f8d866, #a9600b);
+  box-shadow: 0 7px 0 #633d08, 0 0 30px rgba(255, 209, 59, 0.35);
+}
+
+.battle-intro-opponent .battle-intro-avatar-frame {
+  border-color: #9f82ff;
+  background: linear-gradient(145deg, #c8a9ff, #5b2ca2);
+  box-shadow: 0 7px 0 #351461, 0 0 30px rgba(162, 57, 234, 0.35);
+}
+
+.battle-intro-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(9, 17, 31, 0.8);
+  border-radius: 16px;
+  background: #101d36;
+  object-fit: cover;
+}
+
+.battle-intro-name {
+  max-width: 100%;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.4vw, 1.5rem);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+  text-shadow: 0 3px 4px #000;
+}
+
+.battle-intro-side {
+  font-size: 0.68rem;
+  color: #b7c9e8;
+}
+
+.battle-intro.is-player-win .battle-intro-title,
+.battle-intro.is-player-win .battle-intro-player .battle-intro-side {
+  color: var(--green-bright);
+}
+
+.battle-intro.is-player-loss .battle-intro-title,
+.battle-intro.is-player-loss .battle-intro-player .battle-intro-side {
+  color: var(--red-bright);
+}
+
+.battle-intro.is-player-draw .battle-intro-title,
+.battle-intro.is-player-draw .battle-intro-side {
+  color: var(--text-gold);
+}
+
+.battle-intro.is-player-loss .battle-intro-opponent .battle-intro-side,
+.battle-intro.is-player-win .battle-intro-opponent .battle-intro-side {
+  color: var(--green-bright);
+}
+
+.battle-intro.is-player-win .battle-intro-opponent .battle-intro-side {
+  color: var(--red-bright);
+}
+
+.battle-intro-versus {
+  color: #ff626b;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  font-style: italic;
+  text-shadow: 0 4px 0 #6e1017, 0 0 24px rgba(255, 94, 104, 0.8);
+  animation: battleIntroVs 0.55s 0.15s ease-out both;
+}
+
+.battle-intro-difficulty {
+  margin: 0.6rem 0 1.3rem;
+  color: var(--text-gold);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.battle-intro-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.battle-intro-actions .cc-btn-play-green,
+.battle-intro-actions .cc-btn-secondary {
+  width: auto;
+  min-width: 175px;
+}
+
+.battle-intro-panel:focus-visible,
+.battle-intro-actions button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
+@keyframes battleIntroEnter {
+  from { opacity: 0; transform: scale(0.94) translateY(18px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes battleIntroVs {
+  from { opacity: 0; transform: scale(2.2) rotate(-12deg); }
+  to { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
 
 /* Barra Superior da Arena (Estilo Topbar Clash Royale) */
 .arena-topbar {
@@ -1271,7 +1452,7 @@ body.castle-theme {
 }
 
 /* Grid de Bots (Cartas de Adversário) */
-.cc-bots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.2rem; }
+.cc-bots-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; margin-bottom: 1.2rem; }
 
 .cc-bot-card {
   display: flex; align-items: center;
@@ -1417,6 +1598,12 @@ body.castle-theme {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 .custom-tab-btn:hover { color: #fff; }
+.custom-tab-btn:disabled {
+  color: #61728b;
+  cursor: not-allowed;
+  text-shadow: none;
+}
+.custom-tab-btn:disabled:hover { color: #61728b; }
 .custom-tab-btn.active {
   background: linear-gradient(180deg, #3d7ad6 0%, #20539e 100%);
   color: #fff;
@@ -1425,6 +1612,12 @@ body.castle-theme {
 }
 .custom-tab-panel { display: none; }
 .custom-tab-panel.active { display: block; }
+.piece-skins-disabled-note {
+  color: #9bbbe6;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0 0 0.8rem;
+}
 
 /* Grid de Temas */
 .themes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
@@ -1627,6 +1820,11 @@ body.castle-theme {
   transition: all 0.12s;
 }
 .bp-tier-card:hover { border-color: #4a7ec4; transform: translateY(-1px); }
+.bp-tier-card.disabled {
+  opacity: 0.68;
+  cursor: not-allowed;
+}
+.bp-tier-card.disabled:hover { border-color: #335b94; transform: none; }
 
 .bp-tier-badge {
   font-family: var(--font-display);
@@ -1668,6 +1866,11 @@ body.castle-theme {
   color: #7d9ec9;
   border: 1px solid #284777;
 }
+.bp-status-pill.disabled {
+  background: linear-gradient(180deg, #343d4c 0%, #252c38 100%);
+  color: #b6c0cd;
+  border: 1px solid #576273;
+}
 
 /* ==========================================================================
    8. MODAIS CONFIGURAÇÕES & AMIGOS / CONTA
@@ -1708,6 +1911,12 @@ body.castle-theme {
   border-radius: 14px;
   background: linear-gradient(180deg, #182b49 0%, #101d33 100%);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 3px 0 #0d1726;
+}
+.account-reward-note {
+  margin: 0 0 0.8rem;
+  color: #a4c4f0;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 .account-form { display: grid; gap: 0.65rem; }
 .account-mode-toggle { margin-bottom: 0.35rem; }
@@ -1783,4 +1992,17 @@ body.castle-theme {
   .arena-topbar { padding: 0.55rem 0.85rem; }
   .arena-icon-btn { padding: 0.4rem 0.7rem; font-size: 0.76rem; }
   .modal-box { width: 95%; border-width: 3px; }
+  .cc-bots-grid { grid-template-columns: 1fr; }
+  .battle-intro-panel { padding: 1.1rem; }
+  .battle-intro-matchup { gap: 0.4rem; }
+  .battle-intro-avatar-frame { width: min(27vw, 112px); border-width: 3px; border-radius: 18px; padding: 4px; }
+  .battle-intro-avatar { border-radius: 12px; }
+  .battle-intro-actions { flex-direction: column-reverse; }
+  .battle-intro-actions .cc-btn-play-green,
+  .battle-intro-actions .cc-btn-secondary { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-intro-panel,
+  .battle-intro-versus { animation: none; }
 }
